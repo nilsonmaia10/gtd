@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GTD Pessoal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f10;--surface:#18181b;--surface2:#222227;
+  --border:#2a2a32;--text:#f0eff4;--muted:#7a7a8a;
+  --accent:#7ee8a2;--red:#f87171;--blue:#60a5fa;
+  --yellow:#fbbf24;--pink:#f472b6;--r:14px;--rs:8px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;font-size:14px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+/* HEADER */
+#header{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);background:rgba(15,15,16,.95);position:sticky;top:0;z-index:50;flex-shrink:0;flex-wrap:wrap;gap:8px}
+#header h1{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;letter-spacing:-.5px}
+#header h1 span{color:var(--accent)}
+.hstats{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{background:var(--surface);border:1px solid var(--border);padding:3px 10px;border-radius:99px;font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:4px}
+.pill b{color:var(--text)}
+#sync-badge{font-size:.7rem;padding:3px 10px;border-radius:99px;border:1px solid var(--border);cursor:pointer;transition:all .2s}
+
+/* LAYOUT */
+#layout{display:flex;flex:1;overflow:hidden}
+
+/* NAV */
+#nav{width:54px;flex-shrink:0;border-right:1px solid var(--border);padding:10px 6px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;transition:width .2s}
+#nav.open{width:190px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:var(--rs);border:none;background:transparent;color:var(--muted);cursor:pointer;width:100%;text-align:left;white-space:nowrap;overflow:hidden;transition:all .15s;font-family:'DM Sans',sans-serif;font-size:.85rem}
+.nav-btn:hover,.nav-btn.active{background:var(--surface2);color:var(--text)}
+.nav-btn .ni{font-size:1.1rem;flex-shrink:0;width:24px;text-align:center}
+.nav-btn .nl{flex:1;font-size:.82rem}
+.nav-btn .nb{margin-left:auto;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:.68rem;padding:1px 7px;border-radius:99px;flex-shrink:0}
+.nav-btn.active .nb{background:var(--accent);color:#000;border-color:var(--accent)}
+.nav-section{font-size:.6rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 4px;white-space:nowrap;overflow:hidden}
+#nav-toggle{background:none;border:none;color:var(--muted);cursor:pointer;padding:8px;font-size:1rem;border-radius:var(--rs);width:100%;display:flex;align-items:center;justify-content:center}
+#nav-toggle:hover{background:var(--surface2);color:var(--text)}
+
+/* MAIN */
+#main{flex:1;overflow-y:auto;padding:18px 16px}
+
+/* PANEL */
+.panel{display:none;animation:fi .2s ease}
+.panel.visible{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.ph{margin-bottom:18px}.ph-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700}
+.ph-sub{font-size:.8rem;color:var(--muted);margin-top:2px}
+
+/* INPUTS */
+.capture-row{display:flex;gap:8px;margin-bottom:18px}
+input,select,textarea{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;padding:10px 13px;outline:none;transition:border-color .2s;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+input::placeholder{color:var(--muted)}
+select option{background:var(--surface2)}
+
+/* BUTTONS */
+.btn{background:var(--accent);color:#000;border:none;border-radius:var(--rs);padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn:active{transform:scale(.97)}
+.btn-sm{padding:7px 12px;font-size:.75rem}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:var(--rs);padding:7px 12px;font-family:'DM Sans',sans-serif;font-size:.75rem;cursor:pointer;transition:all .15s}
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+.btn-red{border-color:var(--red);color:var(--red)}
+.btn-red:hover{background:rgba(248,113,113,.1)}
+
+/* TAGS */
+.tag{font-size:.68rem;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);display:inline-block}
+.tag-ctx{background:rgba(96,165,250,.12);color:var(--blue);border-color:rgba(96,165,250,.25)}
+.tag-proj{background:rgba(251,191,36,.12);color:var(--yellow);border-color:rgba(251,191,36,.25)}
+.tag-wait{background:rgba(244,114,182,.12);color:var(--pink);border-color:rgba(244,114,182,.25)}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;display:flex;align-items:flex-start;gap:11px;margin-bottom:8px;transition:border-color .2s;position:relative}
+.card:hover{border-color:var(--accent)}
+.card.faded{opacity:.45}
+.card-body{flex:1;min-width:0}
+.card-title{font-weight:500;font-size:.9rem;line-height:1.4}
+.card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.card-actions{display:flex;gap:5px;flex-shrink:0;align-items:flex-start}
+
+/* CHECK */
+.check{width:20px;height:20px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:1px}
+.check:hover{border-color:var(--accent)}
+.check.on{background:var(--accent);border-color:var(--accent)}
+.check.on::after{content:'✓';font-size:.65rem;color:#000;font-weight:bold}
+.check-sm{width:16px;height:16px;border-width:2px;margin-top:0}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty-icon{font-size:2.2rem;margin-bottom:10px}
+.empty p{font-size:.85rem;line-height:1.6}
+
+/* PROJECT CARD */
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.proj-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.proj-progress{margin:10px 0 4px}
+.prog-labels{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-bottom:4px}
+.prog-bar{background:var(--border);border-radius:99px;height:4px}
+.prog-fill{background:var(--accent);height:4px;border-radius:99px;transition:width .3s}
+.proj-task{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border)}
+.proj-add{border-top:1px solid var(--border);padding-top:10px;margin-top:6px;display:flex;gap:8px}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .15s}
+.dash-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dash-icon{font-size:1.3rem;margin-bottom:8px}
+.dash-num{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;line-height:1}
+.dash-label{font-size:.73rem;color:var(--muted);margin-top:4px}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;width:min(460px,94vw);max-height:90vh;overflow-y:auto;position:relative}
+.modal h2{font-family:'Syne',sans-serif;font-size:1.05rem;margin-bottom:16px}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer}
+.modal-close:hover{color:var(--text)}
+.flow-q{font-weight:600;font-size:.92rem;margin-bottom:10px}
+.flow-hint{font-size:.73rem;color:var(--muted);margin:-6px 0 10px;line-height:1.5}
+.flow-opt{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:8px;transition:all .15s}
+.flow-opt:hover{border-color:var(--accent);background:rgba(126,232,162,.06)}
+.flow-opt-icon{font-size:1.05rem}
+.flow-opt b{font-size:.88rem;color:var(--text);display:block}
+.flow-opt small{font-size:.75rem;color:var(--muted)}
+.form-row{margin-bottom:13px}
+.form-label{font-size:.72rem;color:var(--muted);margin-bottom:6px;display:block}
+.inset{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:13px;margin-bottom:12px}
+.inset-label{font-size:.72rem;color:var(--muted);margin-bottom:8px}
+.inset-row{display:flex;gap:8px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 18px;border-radius:99px;font-size:.82rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* DRIVE AUTH */
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px;text-align:center}
+#auth-screen h2{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800}
+#auth-screen p{color:var(--muted);font-size:.875rem;line-height:1.6;max-width:340px}
+.auth-btn{background:var(--accent);color:#000;border:none;border-radius:var(--rs);padding:13px 28px;font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;gap:10px}
+.skip-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:var(--rs);padding:10px 24px;font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer}
+.skip-btn:hover{border-color:var(--text);color:var(--text)}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div style="font-size:2.5rem">🧠</div>
+  <h2>GTD <span style="color:var(--accent)">Pessoal</span></h2>
+  <p>Conecte ao Google Drive para sincronizar seus dados entre celular e PC automaticamente.</p>
+  <button class="auth-btn" onclick="startGoogleAuth()">
+    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.7 2.3 30.2 0 24 0 14.8 0 6.9 5.4 3 13.3l7.9 6.1C12.8 13.1 17.9 9.5 24 9.5z"/><path fill="#34A853" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z"/><path fill="#FBBC05" d="M10.9 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6L2.4 13.3A24 24 0 0 0 0 24c0 3.8.9 7.4 2.4 10.7l8.5-6.1z"/><path fill="#4285F4" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2.1 1.4-4.7 2.3-7.7 2.3-6.1 0-11.2-3.6-13.1-8.9l-8.5 6.1C6.9 42.6 14.8 48 24 48z"/></svg>
+    Conectar com Google Drive
+  </button>
+  <button class="skip-btn" onclick="skipAuth()">Usar sem sincronização (só local)</button>
+  <p style="font-size:.72rem;color:var(--muted);margin-top:4px">Seus dados ficam salvos em gtd-pessoal.json no Drive</p>
+</div>
+
+<!-- HEADER -->
+<header id="header" style="display:none">
+  <button id="nav-toggle" onclick="toggleNav()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:4px">☰</button>
+  <h1>GTD <span>pessoal</span></h1>
+  <div class="hstats">
+    <span id="sync-badge" class="pill" onclick="manualSync()" title="Clique para sincronizar">☁️ <span id="sync-txt">Sincronizado</span></span>
+    <span class="pill">📥 <b id="h-inbox">0</b></span>
+    <span class="pill">⚡ <b id="h-next">0</b></span>
+    <span class="pill">✅ <b id="h-done">0</b></span>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div id="layout" style="display:none">
+  <nav id="nav">
+    <button id="nav-toggle2" onclick="toggleNav()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:8px 4px;width:100%;display:flex;align-items:center;justify-content:center;border-radius:var(--rs)">☰</button>
+    <div class="nav-section" id="ns1">Capturar</div>
+    <button class="nav-btn active" id="nb-inbox" onclick="showPanel('inbox')"><span class="ni">📥</span><span class="nl">Entrada</span><span class="nb" id="b-inbox">0</span></button>
+    <div class="nav-section" id="ns2">Organizar</div>
+    <button class="nav-btn" id="nb-next" onclick="showPanel('next')"><span class="ni">⚡</span><span class="nl">Próx. ações</span><span class="nb" id="b-next">0</span></button>
+    <button class="nav-btn" id="nb-projects" onclick="showPanel('projects')"><span class="ni">📂</span><span class="nl">Projetos</span><span class="nb" id="b-projects">0</span></button>
+    <button class="nav-btn" id="nb-waiting" onclick="showPanel('waiting')"><span class="ni">⏳</span><span class="nl">Aguardando</span><span class="nb" id="b-waiting">0</span></button>
+    <button class="nav-btn" id="nb-calendar" onclick="showPanel('calendar')"><span class="ni">📅</span><span class="nl">Calendário</span><span class="nb" id="b-calendar">0</span></button>
+    <button class="nav-btn" id="nb-someday" onclick="showPanel('someday')"><span class="ni">💤</span><span class="nl">Algum dia</span><span class="nb" id="b-someday">0</span></button>
+    <button class="nav-btn" id="nb-reference" onclick="showPanel('reference')"><span class="ni">🗂️</span><span class="nl">Referência</span><span class="nb" id="b-reference">0</span></button>
+    <div class="nav-section" id="ns3">Revisar</div>
+    <button class="nav-btn" id="nb-dashboard" onclick="showPanel('dashboard')"><span class="ni">📊</span><span class="nl">Dashboard</span></button>
+    <button class="nav-btn" id="nb-done" onclick="showPanel('done')"><span class="ni">✅</span><span class="nl">Concluídas</span><span class="nb" id="b-done">0</span></button>
+  </nav>
+
+  <main id="main">
+    <!-- INBOX -->
+    <div class="panel visible" id="panel-inbox">
+      <div class="ph"><div class="ph-title">📥 Caixa de Entrada</div><div class="ph-sub">Capture tudo. Processe depois.</div></div>
+      <div class="capture-row">
+        <input id="inbox-input" placeholder="O que está na sua cabeça agora? (Enter)" onkeydown="if(event.key==='Enter')addInbox()"/>
+        <button class="btn" onclick="addInbox()">Capturar</button>
+      </div>
+      <div id="inbox-list"></div>
+      <div class="empty" id="inbox-empty"><div class="empty-icon">🎉</div><p>Entrada limpa!</p></div>
+    </div>
+
+    <!-- NEXT -->
+    <div class="panel" id="panel-next">
+      <div class="ph"><div class="ph-title">⚡ Próximas Ações</div><div class="ph-sub">O que você pode fazer agora.</div></div>
+      <div id="next-list"></div>
+      <div class="empty" id="next-empty"><div class="empty-icon">⚡</div><p>Nenhuma ação definida.</p></div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="panel" id="panel-projects">
+      <div class="ph"><div class="ph-title">📂 Projetos</div><div class="ph-sub">Resultados que exigem mais de uma ação.</div></div>
+      <div class="capture-row">
+        <input id="project-input" placeholder="Nome do projeto..." onkeydown="if(event.key==='Enter')addProject()"/>
+        <button class="btn" onclick="addProject()">+ Criar</button>
+      </div>
+      <div id="projects-list"></div>
+      <div class="empty" id="projects-empty"><div class="empty-icon">📂</div><p>Nenhum projeto ainda.</p></div>
+    </div>
+
+    <!-- WAITING -->
+    <div class="panel" id="panel-waiting">
+      <div class="ph"><div class="ph-title">⏳ Aguardando</div><div class="ph-sub">Delegadas — acompanhe até concluir.</div></div>
+      <div id="waiting-list"></div>
+      <div class="empty" id="waiting-empty"><div class="empty-icon">⏳</div><p>Nada aguardando retorno.</p></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="panel" id="panel-calendar">
+      <div class="ph"><div class="ph-title">📅 Calendário</div><div class="ph-sub">Ações com data e hora definidas.</div></div>
+      <div id="calendar-list"></div>
+      <div class="empty" id="calendar-empty"><div class="empty-icon">📅</div><p>Nenhuma ação agendada.</p></div>
+    </div>
+
+    <!-- SOMEDAY -->
+    <div class="panel" id="panel-someday">
+      <div class="ph"><div class="ph-title">💤 Algum dia / Talvez</div><div class="ph-sub">Ideias sem urgência.</div></div>
+      <div id="someday-list"></div>
+      <div class="empty" id="someday-empty"><div class="empty-icon">💤</div><p>Nenhuma ideia futura.</p></div>
+    </div>
+
+    <!-- REFERENCE -->
+    <div class="panel" id="panel-reference">
+      <div class="ph"><div class="ph-title">🗂️ Referência</div><div class="ph-sub">Informações úteis para consultar.</div></div>
+      <div id="reference-list"></div>
+      <div class="empty" id="reference-empty"><div class="empty-icon">🗂️</div><p>Nenhuma referência arquivada.</p></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="panel" id="panel-dashboard">
+      <div class="ph"><div class="ph-title">📊 Dashboard</div><div class="ph-sub">Visão geral do seu sistema GTD.</div></div>
+      <div class="dash-grid" id="dash-grid"></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px">
+        <div style="font-weight:700;margin-bottom:12px;font-family:'Syne',sans-serif">🔄 Revisão Semanal</div>
+        <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
+          <b style="color:var(--text)">1.</b> Esvaziar a entrada completamente<br>
+          <b style="color:var(--text)">2.</b> Revisar projetos — cada um tem próxima ação?<br>
+          <b style="color:var(--text)">3.</b> Checar "Aguardando" — algum retorno atrasado?<br>
+          <b style="color:var(--text)">4.</b> Rever "Algum dia" — algo virou prioridade?<br>
+          <b style="color:var(--text)">5.</b> Celebrar as concluídas ✅
+        </div>
+      </div>
+    </div>
+
+    <!-- DONE -->
+    <div class="panel" id="panel-done">
+      <div class="ph" style="display:flex;align-items:center">
+        <div style="flex:1"><div class="ph-title">✅ Concluídas</div><div class="ph-sub">Tudo que você já realizou.</div></div>
+        <button class="btn-ghost" onclick="clearDone()">Limpar</button>
+      </div>
+      <div id="done-list"></div>
+      <div class="empty" id="done-empty"><div class="empty-icon">🏁</div><p>Nenhuma tarefa concluída ainda.</p></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>🔄 Processar: <span id="modal-title" style="color:var(--accent)"></span></h2>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIGURAÇÃO GOOGLE DRIVE
+// ══════════════════════════════════════════
+// Para ativar o Drive sync, você precisa de um Client ID do Google.
+// Instruções: https://console.cloud.google.com → Criar projeto → APIs & Services
+// → Credenciais → Criar ID do cliente OAuth (Tipo: Aplicativo da Web)
+// → Origens JS: adicione seu domínio (ou file://)
+// Cole seu Client ID abaixo:
+const GOOGLE_CLIENT_ID = ''; // <- Cole aqui seu Client ID
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+const GTD_FILENAME = 'gtd-pessoal.json';
+
+let tokenClient = null;
+let accessToken = null;
+let driveFileId = null;
+let useDrive = false;
+let saveTimer = null;
+
+// ══════════════════════════════════════════
+// DADOS
+// ══════════════════════════════════════════
+let D = { inbox:[], next:[], projects:[], waiting:[], calendar:[], someday:[], reference:[], done:[] };
+let processingId = null;
+let navOpen = false;
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function today(){ return new Date().toLocaleDateString('pt-BR'); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ══════════════════════════════════════════
+// AUTH GOOGLE
+// ══════════════════════════════════════════
+function startGoogleAuth(){
+  if(!GOOGLE_CLIENT_ID){
+    showToast('⚠️ Configure seu Client ID no código!');
+    showApp();
+    return;
+  }
+  // Carrega Google Identity Services
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.onload = initGoogleAuth;
+  document.head.appendChild(s);
+}
+
+function initGoogleAuth(){
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if(resp.error){ showToast('❌ Erro no login Google'); return; }
+      accessToken = resp.access_token;
+      useDrive = true;
+      showApp();
+      setSyncStatus('loading','⬇️ Carregando...');
+      await loadFromDrive();
+    }
+  });
+  tokenClient.requestAccessToken({ prompt:'' });
+}
+
+function skipAuth(){
+  useDrive = false;
+  loadLocal();
+  showApp();
+  showToast('📱 Modo local ativado');
+}
+
+function showApp(){
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('header').style.display = 'flex';
+  document.getElementById('layout').style.display = 'flex';
+  renderAll();
+}
+
+// ══════════════════════════════════════════
+// DRIVE: CARREGAR / SALVAR
+// ══════════════════════════════════════════
+async function loadFromDrive(){
+  try{
+    // Busca arquivo pelo nome
+    const q = encodeURIComponent(`name='${GTD_FILENAME}' and trashed=false`);
+    const r = await gFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`);
+    const files = r.files || [];
+    if(files.length > 0){
+      driveFileId = files[0].id;
+      const content = await gFetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`);
+      D = { ...D, ...content };
+      saveLocal();
+      renderAll();
+      setSyncStatus('ok','☁️ Sincronizado');
+      showToast('☁️ Dados carregados do Drive!');
+    } else {
+      // Nenhum arquivo ainda — carrega local e salva no Drive
+      loadLocal();
+      renderAll();
+      setSyncStatus('ok','☁️ Sincronizado');
+      showToast('☁️ Primeiro uso — dados serão salvos no Drive');
+      scheduleSave();
+    }
+  } catch(e){
+    console.error(e);
+    loadLocal(); renderAll();
+    setSyncStatus('err','⚠️ Erro Drive');
+    showToast('⚠️ Erro ao carregar Drive. Usando dados locais.');
+  }
+}
+
+async function saveToDrive(){
+  if(!useDrive || !accessToken) return;
+  setSyncStatus('saving','⏳ Salvando...');
+  try{
+    const body = JSON.stringify(D);
+    const blob = new Blob([body], {type:'application/json'});
+    if(driveFileId){
+      // Atualiza existente
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,{
+        method:'PATCH', headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'}, body
+      });
+    } else {
+      // Cria novo
+      const meta = JSON.stringify({name: GTD_FILENAME, mimeType:'application/json'});
+      const form = new FormData();
+      form.append('metadata', new Blob([meta],{type:'application/json'}));
+      form.append('file', blob);
+      const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+        method:'POST', headers:{'Authorization':'Bearer '+accessToken}, body:form
+      });
+      const j = await r.json();
+      driveFileId = j.id;
+    }
+    saveLocal();
+    setSyncStatus('ok','☁️ Sincronizado');
+  } catch(e){
+    console.error(e);
+    setSyncStatus('err','⚠️ Erro ao salvar');
+    showToast('⚠️ Erro ao salvar no Drive');
+  }
+}
+
+async function gFetch(url){
+  const r = await fetch(url, { headers:{'Authorization':'Bearer '+accessToken} });
+  return r.json();
+}
+
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveToDrive(), 2500);
+}
+
+async function manualSync(){
+  if(!useDrive){ showToast('📱 Modo local — sem Drive conectado'); return; }
+  setSyncStatus('loading','⬇️ Sincronizando...');
+  await loadFromDrive();
+}
+
+// LOCAL STORAGE
+function saveLocal(){ try{ localStorage.setItem('gtd-v2', JSON.stringify(D)); }catch(e){} }
+function loadLocal(){ try{ const s=localStorage.getItem('gtd-v2'); if(s) D={...D,...JSON.parse(s)}; }catch(e){} }
+
+function save(){
+  saveLocal();
+  scheduleSave();
+}
+
+function setSyncStatus(state, txt){
+  const el = document.getElementById('sync-badge');
+  const t = document.getElementById('sync-txt');
+  if(!el||!t) return;
+  t.textContent = txt || '';
+  el.style.color = state==='ok'?'var(--accent)':state==='saving'?'var(--yellow)':state==='loading'?'var(--blue)':'var(--red)';
+  el.style.borderColor = state==='ok'?'rgba(126,232,162,.3)':state==='err'?'rgba(248,113,113,.3)':'var(--border)';
+}
+
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
+function toggleNav(){
+  navOpen = !navOpen;
+  document.getElementById('nav').classList.toggle('open', navOpen);
+}
+
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('visible'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('visible');
+  const nb = document.getElementById('nb-'+name);
+  if(nb) nb.classList.add('active');
+  if(navOpen){ navOpen=false; document.getElementById('nav').classList.remove('open'); }
+  renderAll();
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function renderAll(){
+  renderInbox();
+  renderActions('next');
+  renderProjects();
+  renderWaiting();
+  renderCalendar();
+  renderActions('someday');
+  renderActions('reference');
+  renderDone();
+  renderDashboard();
+  updateBadges();
+}
+
+function setList(key, html){
+  const list = document.getElementById(key+'-list');
+  const empty = document.getElementById(key+'-empty');
+  if(!list) return;
+  if(html){ list.innerHTML=html; if(empty) empty.style.display='none'; }
+  else { list.innerHTML=''; if(empty) empty.style.display='block'; }
+}
+
+function renderInbox(){
+  if(!D.inbox.length){ setList('inbox',null); return; }
+  setList('inbox', D.inbox.map(item=>`
+    <div class="card" id="c-${item.id}">
+      <div class="card-body">
+        <div class="card-title">${esc(item.title)}</div>
+        <div class="card-meta"><span class="tag">${esc(item.date)}</span></div>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-sm" onclick="openModal('${item.id}')">Processar</button>
+        <button class="btn-ghost btn-red" onclick="del('inbox','${item.id}')">✕</button>
+      </div>
+    </div>`).join(''));
+}
+
+function renderActions(key){
+  if(!D[key]||!D[key].length){ setList(key,null); return; }
+  setList(key, D[key].map(item=>`
+    <div class="card${item.done?' faded':''}" id="c-${item.id}">
+      <div class="check${item.done?' on':''}" onclick="toggleDone('${key}','${item.id}')"></div>
+      <div class="card-body">
+        <div class="card-title" style="${item.done?'text-decoration:line-through':'}'}">${esc(item.title)}</div>
+        <div class="card-meta">
+          ${item.context?`<span class="tag tag-ctx">@${esc(item.context)}</span>`:''}
+          ${item.project?`<span class="tag tag-proj">📂 ${esc(item.project)}</span>`:''}
+          ${item.date?`<span class="tag">📅 ${esc(item.date)}</span>`:''}
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-ghost" onclick="del('${key}','${item.id}')">✕</button>
+      </div>
+    </div>`).join(''));
+}
+
+function renderProjects(){
+  if(!D.projects.length){ setList('projects',null); return; }
+  setList('projects', D.projects.map(proj=>{
+    const tasks = D.next.filter(a=>a.project===proj.title);
+    const doneTasks = D.done.filter(a=>a.project===proj.title);
+    const total = tasks.length+doneTasks.length;
+    const pct = total>0 ? Math.round(doneTasks.length/total*100) : 0;
+    const taskRows = tasks.map(t=>`
+      <div class="proj-task">
+        <div class="check check-sm" onclick="toggleDone('next','${t.id}')"></div>
+        <span style="flex:1;font-size:.82rem">${esc(t.title)}</span>
+        ${t.context?`<span class="tag tag-ctx" style="font-size:.65rem">@${esc(t.context)}</span>`:''}
+      </div>`).join('');
+    const doneRows = doneTasks.map(t=>`
+      <div class="proj-task" style="opacity:.4">
+        <div class="check check-sm on"></div>
+        <span style="flex:1;font-size:.82rem;text-decoration:line-through;color:var(--muted)">${esc(t.title)}</span>
+      </div>`).join('');
+    const progBar = total>0?`
+      <div class="proj-progress">
+        <div class="prog-labels"><span>${doneTasks.length} de ${total}</span><span>${pct}%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      </div>`:'';
+    return `<div class="proj-card" id="c-${proj.id}">
+      <div class="proj-header">
+        <span style="font-size:1.2rem">📂</span>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:.95rem">${esc(proj.title)}</div>
+          <div class="card-meta">
+            <span class="tag tag-proj">⚡ ${tasks.length} pendentes</span>
+            ${doneTasks.length?`<span class="tag">✅ ${doneTasks.length} feitas</span>`:''}
+          </div>
+        </div>
+        <button class="btn-ghost btn-red" onclick="del('projects','${proj.id}')">✕</button>
+      </div>
+      ${progBar}
+      <div>${taskRows}${doneRows}</div>
+      <div class="proj-add">
+        <input id="pt-${proj.id}" placeholder="+ Adicionar tarefa..." style="flex:1;padding:7px 10px;font-size:.82rem"
+          onkeydown="if(event.key==='Enter')addProjTask('${esc(proj.title)}','pt-${proj.id}')"/>
+        <button class="btn btn-sm" onclick="addProjTask('${esc(proj.title)}','pt-${proj.id}')">+</button>
+      </div>
+    </div>`;
+  }).join(''));
+}
+
+function renderWaiting(){
+  if(!D.waiting.length){ setList('waiting',null); return; }
+  setList('waiting', D.waiting.map(item=>`
+    <div class="card" id="c-${item.id}">
+      <div class="card-body">
+        <div class="card-title">${esc(item.title)}</div>
+        <div class="card-meta">
+          ${item.who?`<span class="tag tag-wait">👤 ${esc(item.who)}</span>`:''}
+          ${item.date?`<span class="tag">📅 ${esc(item.date)}</span>`:''}
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-sm" onclick="moveToDone('waiting','${item.id}')">Concluído</button>
+        <button class="btn-ghost" onclick="del('waiting','${item.id}')">✕</button>
+      </div>
+    </div>`).join(''));
+}
+
+function renderCalendar(){
+  if(!D.calendar.length){ setList('calendar',null); return; }
+  setList('calendar', D.calendar.map(item=>`
+    <div class="card" id="c-${item.id}">
+      <div class="card-body">
+        <div class="card-title">${esc(item.title)}</div>
+        <div class="card-meta">
+          ${item.date?`<span class="tag">📅 ${esc(item.date)}</span>`:''}
+          ${item.time?`<span class="tag">🕐 ${esc(item.time)}</span>`:''}
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-sm" onclick="moveToDone('calendar','${item.id}')">Feito</button>
+        <button class="btn-ghost" onclick="del('calendar','${item.id}')">✕</button>
+      </div>
+    </div>`).join(''));
+}
+
+function renderDone(){
+  if(!D.done.length){ setList('done',null); return; }
+  setList('done', D.done.map(item=>`
+    <div class="card faded" id="c-${item.id}">
+      <div class="check on" onclick="undoDone('${item.id}')"></div>
+      <div class="card-body">
+        <div class="card-title" style="text-decoration:line-through">${esc(item.title)}</div>
+        <div class="card-meta"><span class="tag">✅ ${esc(item.doneAt||'')}</span></div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-ghost" onclick="undoDone('${item.id}')">↩ Desfazer</button>
+        <button class="btn-ghost" onclick="del('done','${item.id}')">✕</button>
+      </div>
+    </div>`).join(''));
+}
+
+function renderDashboard(){
+  const g = document.getElementById('dash-grid');
+  if(!g) return;
+  const cards=[
+    {icon:'📥',num:D.inbox.length,label:'Na entrada',color:'var(--blue)',panel:'inbox'},
+    {icon:'⚡',num:D.next.length,label:'Próximas ações',color:'var(--accent)',panel:'next'},
+    {icon:'📂',num:D.projects.length,label:'Projetos ativos',color:'var(--yellow)',panel:'projects'},
+    {icon:'⏳',num:D.waiting.length,label:'Aguardando',color:'var(--pink)',panel:'waiting'},
+    {icon:'💤',num:D.someday.length,label:'Algum dia',color:'var(--yellow)',panel:'someday'},
+    {icon:'✅',num:D.done.length,label:'Concluídas',color:'var(--muted)',panel:'done'},
+  ];
+  g.innerHTML = cards.map(c=>`
+    <div class="dash-card" onclick="showPanel('${c.panel}')">
+      <div class="dash-icon">${c.icon}</div>
+      <div class="dash-num" style="color:${c.color}">${c.num}</div>
+      <div class="dash-label">${c.label}</div>
+    </div>`).join('');
+}
+
+function updateBadges(){
+  ['inbox','next','projects','waiting','calendar','someday','reference','done'].forEach(k=>{
+    const el=document.getElementById('b-'+k); if(el) el.textContent=(D[k]||[]).length;
+  });
+  document.getElementById('h-inbox').textContent=D.inbox.length;
+  document.getElementById('h-next').textContent=D.next.length;
+  document.getElementById('h-done').textContent=D.done.length;
+}
+
+// ══════════════════════════════════════════
+// AÇÕES
+// ══════════════════════════════════════════
+function addInbox(){
+  const inp=document.getElementById('inbox-input');
+  const t=inp.value.trim(); if(!t) return;
+  D.inbox.push({id:uid(),title:t,date:today()});
+  inp.value=''; save(); renderAll(); showToast('✅ Capturado!');
+}
+
+function addProject(){
+  const inp=document.getElementById('project-input');
+  const t=inp.value.trim(); if(!t) return;
+  D.projects.push({id:uid(),title:t,date:today()});
+  inp.value=''; save(); renderAll(); showToast('📂 Projeto criado!');
+}
+
+function addProjTask(projTitle, inputId){
+  const inp=document.getElementById(inputId);
+  const t=inp?.value.trim(); if(!t) return;
+  D.next.push({id:uid(),title:t,project:projTitle,context:'',date:'',_origin:'next'});
+  inp.value=''; save(); renderAll(); showToast('⚡ Tarefa adicionada!');
+}
+
+function del(list, id){
+  D[list]=D[list].filter(i=>i.id!==id);
+  save(); renderAll(); showToast('🗑️ Removido.');
+}
+
+function toggleDone(list, id){
+  moveToDone(list, id);
+}
+
+function moveToDone(list, id){
+  const idx=D[list].findIndex(i=>i.id===id); if(idx<0) return;
+  const [item]=D[list].splice(idx,1);
+  item.doneAt=today(); item.done=true; item._origin=list;
+  D.done.push(item);
+  save(); renderAll(); showToast('✅ Concluído! Clique em ↩ para desfazer.');
+}
+
+function undoDone(id){
+  const idx=D.done.findIndex(i=>i.id===id); if(idx<0) return;
+  const [item]=D.done.splice(idx,1);
+  const origin=item._origin||'next';
+  delete item.doneAt; item.done=false;
+  D[origin].push(item);
+  save(); renderAll(); showToast('↩ Devolvido para '+(origin==='next'?'Próximas Ações':origin)+'!');
+}
+
+function clearDone(){
+  if(!D.done.length) return;
+  if(confirm('Limpar todas as concluídas?')){ D.done=[]; save(); renderAll(); }
+}
+
+// ══════════════════════════════════════════
+// MODAL PROCESSAR
+// ══════════════════════════════════════════
+function openModal(id){
+  processingId=id;
+  const item=D.inbox.find(i=>i.id===id); if(!item) return;
+  document.getElementById('modal-title').textContent=item.title;
+  showStep('action');
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  processingId=null;
+}
+
+function showStep(step){
+  const mb=document.getElementById('modal-body');
+  if(step==='action') mb.innerHTML=`
+    <div class="flow-q">🤔 Isso requer uma ação?</div>
+    <div class="flow-opt" onclick="showStep('multi')"><span class="flow-opt-icon">✅</span><div><b>Sim</b><small>Preciso fazer algo com isso</small></div></div>
+    <div class="flow-opt" onclick="showStep('noaction')"><span class="flow-opt-icon">❌</span><div><b>Não</b><small>Sem ação necessária</small></div></div>`;
+
+  else if(step==='multi') mb.innerHTML=`
+    <div class="flow-q">📂 Precisa de mais de uma ação?</div>
+    <div class="flow-hint">Se sim, é um <b style="color:var(--yellow)">Projeto</b>.</div>
+    <div class="flow-opt" onclick="showStep('project')"><span class="flow-opt-icon">📂</span><div><b>Sim — é um projeto</b><small>Várias tarefas para concluir</small></div></div>
+    <div class="flow-opt" onclick="showStep('twomins')"><span class="flow-opt-icon">⚡</span><div><b>Não — ação única</b></div></div>`;
+
+  else if(step==='twomins') mb.innerHTML=`
+    <div class="flow-q">⏱️ Leva menos de 2 minutos?</div>
+    <div class="flow-opt" onclick="doNow()"><span class="flow-opt-icon">🚀</span><div><b>Sim — faço agora</b></div></div>
+    <div class="flow-opt" onclick="showStep('delegate')"><span class="flow-opt-icon">🕐</span><div><b>Não — precisa de mais tempo</b></div></div>`;
+
+  else if(step==='delegate') mb.innerHTML=`
+    <div class="flow-q">👥 Tenho alguém para delegar?</div>
+    <div class="flow-opt" onclick="showStep('delegateform')"><span class="flow-opt-icon">👤</span><div><b>Sim — vou delegar</b></div></div>
+    <div class="flow-opt" onclick="showStep('schedule')"><span class="flow-opt-icon">🙋</span><div><b>Não — faço eu mesmo</b></div></div>`;
+
+  else if(step==='schedule') mb.innerHTML=`
+    <div class="flow-q">📅 Precisa de data específica?</div>
+    <div class="flow-opt" onclick="showStep('calform')"><span class="flow-opt-icon">📅</span><div><b>Sim — tem data/hora definida</b></div></div>
+    <div class="flow-opt" onclick="showStep('nextform')"><span class="flow-opt-icon">⚡</span><div><b>Não — próxima ação livre</b></div></div>`;
+
+  else if(step==='noaction') mb.innerHTML=`
+    <div class="flow-q">📚 É importante guardar?</div>
+    <div class="flow-opt" onclick="showStep('keep')"><span class="flow-opt-icon">💾</span><div><b>Sim — vale guardar</b></div></div>
+    <div class="flow-opt" onclick="eliminate()"><span class="flow-opt-icon">🗑️</span><div><b>Não — eliminar</b></div></div>`;
+
+  else if(step==='keep') mb.innerHTML=`
+    <div class="flow-q">🔮 Requer ação futura?</div>
+    <div class="flow-opt" onclick="sendTo('someday')"><span class="flow-opt-icon">💤</span><div><b>Algum dia / talvez</b><small>Sem data definida</small></div></div>
+    <div class="flow-opt" onclick="sendTo('reference')"><span class="flow-opt-icon">🗂️</span><div><b>Referência</b><small>Só consultar quando necessário</small></div></div>`;
+
+  else if(step==='project'){
+    const projs=D.projects.map(p=>`<option value="${esc(p.title)}">${esc(p.title)}</option>`).join('');
+    mb.innerHTML=`
+    <div class="flow-q">📂 Vincular a um projeto</div>
+    <div class="inset">
+      <div class="inset-label">➕ Criar novo projeto</div>
+      <div class="inset-row">
+        <input id="f-newproj" placeholder="ex: Reformar banheiro..." style="flex:1"/>
+        <button class="btn btn-sm" onclick="createProjModal()">Criar</button>
+      </div>
+      <div id="proj-msg" style="display:none;font-size:.72rem;color:var(--accent);margin-top:6px"></div>
+    </div>
+    ${D.projects.length?`<div class="inset">
+      <div class="inset-label">📂 Ou vincular a existente</div>
+      <select id="f-projsel"><option value="">— escolha —</option>${projs}</select>
+    </div>`:''}
+    <div class="form-row">
+      <label class="form-label">Contexto (opcional)</label>
+      <input id="f-ctxproj" placeholder="@casa, @computador..."/>
+    </div>
+    <button class="btn" style="width:100%" onclick="saveProjAction()">Salvar como tarefa do projeto ⚡</button>`;
+  }
+
+  else if(step==='nextform'){
+    const projs=D.projects.map(p=>`<option value="${esc(p.title)}">${esc(p.title)}</option>`).join('');
+    mb.innerHTML=`
+    <div class="flow-q">⚡ Definir próxima ação</div>
+    <div class="form-row">
+      <label class="form-label">Contexto</label>
+      <input id="f-ctx" placeholder="@casa, @computador, @ligação..."/>
+    </div>
+    ${D.projects.length?`<div class="form-row">
+      <label class="form-label">Projeto (opcional)</label>
+      <select id="f-proj"><option value="">— sem projeto —</option>${projs}</select>
+    </div>`:''}
+    <button class="btn" style="width:100%" onclick="saveNextAction()">Salvar como Próxima Ação ⚡</button>`;
+  }
+
+  else if(step==='delegateform') mb.innerHTML=`
+    <div class="flow-q">👤 Delegar para quem?</div>
+    <div class="form-row"><label class="form-label">Nome da pessoa</label><input id="f-who" placeholder="Nome..."/></div>
+    <div class="form-row"><label class="form-label">Acompanhar em</label><input type="date" id="f-wdate" value="${new Date().toISOString().split('T')[0]}"/></div>
+    <button class="btn" style="width:100%" onclick="saveDelegate()">Delegar ⏳</button>`;
+
+  else if(step==='calform') mb.innerHTML=`
+    <div class="flow-q">📅 Agendar</div>
+    <div class="form-row"><label class="form-label">Data</label><input type="date" id="f-date" value="${new Date().toISOString().split('T')[0]}"/></div>
+    <div class="form-row"><label class="form-label">Hora (opcional)</label><input type="time" id="f-time"/></div>
+    <button class="btn" style="width:100%" onclick="saveCal()">Adicionar ao Calendário 📅</button>`;
+}
+
+// Modal actions
+function moveFromInbox(){
+  const idx=D.inbox.findIndex(i=>i.id===processingId);
+  const [item]=D.inbox.splice(idx,1);
+  return item;
+}
+
+function doNow(){
+  const item=moveFromInbox();
+  item.doneAt=today(); item.done=true; item._origin='next';
+  D.done.push(item);
+  save(); renderAll(); closeModal(); showToast('🚀 Feito agora!');
+}
+
+function eliminate(){
+  moveFromInbox(); save(); renderAll(); closeModal(); showToast('🗑️ Eliminado.');
+}
+
+function sendTo(list){
+  const item=moveFromInbox();
+  D[list].push(item);
+  save(); renderAll(); closeModal();
+  showToast(list==='someday'?'💤 Movido para Algum dia.':'🗂️ Arquivado como referência.');
+}
+
+function createProjModal(){
+  const name=document.getElementById('f-newproj')?.value.trim(); if(!name) return;
+  if(D.projects.find(p=>p.title===name)){ showProjMsg('⚠️ Já existe!'); return; }
+  D.projects.push({id:uid(),title:name,date:today()});
+  save();
+  // Atualiza select se existir
+  let sel=document.getElementById('f-projsel');
+  if(!sel){
+    const inset=document.querySelector('.inset');
+    // rerender step
+    showStep('project');
+    sel=document.getElementById('f-projsel');
+  }
+  if(sel){ const o=document.createElement('option'); o.value=name; o.textContent=name; o.selected=true; sel.appendChild(o); }
+  document.getElementById('f-newproj').value='';
+  showProjMsg('✅ Projeto "'+name+'" criado!');
+  renderAll();
+}
+
+function showProjMsg(m){
+  const el=document.getElementById('proj-msg');
+  if(el){ el.textContent=m; el.style.display='block'; }
+}
+
+function saveProjAction(){
+  const sel=document.getElementById('f-projsel')?.value||'';
+  const np=document.getElementById('f-newproj')?.value.trim()||'';
+  const projName=sel||np;
+  if(!projName){ showToast('⚠️ Escolha ou crie um projeto!'); return; }
+  const item=moveFromInbox();
+  item.project=projName; item.context=document.getElementById('f-ctxproj')?.value.trim()||''; item._origin='next';
+  D.next.push(item);
+  save(); renderAll(); closeModal(); showToast(`📂 Tarefa vinculada ao projeto "${projName}"!`);
+}
+
+function saveNextAction(){
+  const item=moveFromInbox();
+  item.context=document.getElementById('f-ctx')?.value.trim()||'';
+  item.project=document.getElementById('f-proj')?.value||'';
+  item._origin='next';
+  D.next.push(item);
+  save(); renderAll(); closeModal(); showToast('⚡ Adicionado às Próximas Ações!');
+}
+
+function saveDelegate(){
+  const item=moveFromInbox();
+  item.who=document.getElementById('f-who')?.value.trim()||'';
+  item.date=document.getElementById('f-wdate')?.value||'';
+  item._origin='waiting';
+  D.waiting.push(item);
+  save(); renderAll(); closeModal(); showToast('👤 Delegado!');
+}
+
+function saveCal(){
+  const item=moveFromInbox();
+  item.date=document.getElementById('f-date')?.value||'';
+  item.time=document.getElementById('f-time')?.value||'';
+  item._origin='calendar';
+  D.calendar.push(item);
+  save(); renderAll(); closeModal(); showToast('📅 Agendado!');
+}
+
+// ── TOAST ──
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+// ── MODAL CLOSE ON OVERLAY ──
+document.getElementById('modal-overlay').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+
+// ── INIT ──
+loadLocal();
+// Se não tem Client ID configurado, mostra app direto sem auth
+if(!GOOGLE_CLIENT_ID){
+  document.getElementById('auth-screen').querySelector('p').textContent =
+    'Para ativar sync com Google Drive, configure seu Client ID no código. Por enquanto, seus dados ficam salvos localmente.';
+}
+</script>
+</body>
+</html>
